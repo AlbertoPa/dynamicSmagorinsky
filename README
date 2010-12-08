@@ -36,17 +36,21 @@ Author
 Instructions
 ------------
 
-1. Download the source code using git.
+1. Download the source code using git:
+
+    git clone git://github.com/AlbertoPa/dynamicSmagorinsky.git
+
 2. Enter the directory where the source code has been extracted, and compile
    it by typing: wmake libso
+
 3. Add the following line to the controlDict of your case:
 
-   libs ( "libOpenFOAM.so" "libdynLocalAverageSmagorinskyModel.so" ) ;
+    libs ( "libOpenFOAM.so" "libdynLocalAverageSmagorinskyModel.so" ) ;
 
 4. Specify
 
-   LESModel        dynamicSmagorinsky;
-   delta           cubeRootVol;
+    LESModel        dynamicSmagorinsky;
+    delta           cubeRootVol;
 
    in LESModel.
 
