@@ -45,7 +45,7 @@ Instructions
 
 3. Add the following line to the controlDict of your case:
 
-    libs ( "libOpenFOAM.so" "libdynLocalAverageSmagorinskyModel.so" ) ;
+    libs ( "libOpenFOAM.so" "libdynamicSmagorinskyModel.so" ) ;
 
 4. Specify
 
