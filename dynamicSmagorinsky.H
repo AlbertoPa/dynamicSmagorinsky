@@ -4,7 +4,7 @@ dynamicSmagorinsky - Implementation of the dynamic Smagorinsky SGS model
 				 
 Copyright Information
     Copyright (C) 1991-2009 OpenCFD Ltd.
-    Copyright (C) 2010 Alberto Passalacqua 
+    Copyright (C) 2010-2011 Alberto Passalacqua 
 
 License
     This program is free software: you can redistribute it and/or modify
@@ -75,7 +75,7 @@ Notes
     Negative values of the effective viscosity are removed by clipping it to
     zero (nuSgs is clipped to -nu)
 
-    The code is known to work with OpenFOAM 1.7.x
+    The code is known to work with OpenFOAM 2.0.x.
 
 \*---------------------------------------------------------------------------*/
 
@@ -135,7 +135,9 @@ public:
         (
             const volVectorField& U,
             const surfaceScalarField& phi,
-            transportModel& transport
+            transportModel& transport,
+	    const word& turbulenceModelName = turbulenceModel::typeName,
+            const word& modelName = typeName
         );
 
     //- Destructor

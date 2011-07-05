@@ -1,10 +1,10 @@
 /*---------------------------------------------------------------------------*\
 dynamicSmagorinsky - Implementation of the dynamic Smagorinsky
-    			     SGS model.
+		     SGS model.
     
 Copyright Information
     Copyright (C) 1991-2009 OpenCFD Ltd.
-    Copyright (C) 2010 Alberto Passalacqua 
+    Copyright (C) 2010-2011 Alberto Passalacqua 
     
 License
     This program is free software: you can redistribute it and/or modify
@@ -41,7 +41,10 @@ addToRunTimeSelectionTable(LESModel, dynamicSmagorinsky, dictionary);
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void dynamicSmagorinsky::updateSubGridScaleFields(const volSymmTensorField& D)
+void dynamicSmagorinsky::updateSubGridScaleFields
+(
+    const volSymmTensorField& D
+)
 {
     // The SGS viscosity is bounded so that nuEff cannot become negative.
     // Values are limited here, and not in nuEff, for consistency in stored
@@ -51,7 +54,10 @@ void dynamicSmagorinsky::updateSubGridScaleFields(const volSymmTensorField& D)
     nuSgs_.correctBoundaryConditions();
 }
 
-volScalarField dynamicSmagorinsky::cD(const volSymmTensorField& D) const
+volScalarField dynamicSmagorinsky::cD
+(
+    const volSymmTensorField& D
+) const
 {
     volSymmTensorField LL = dev(filter_(sqr(U())) - (sqr(filter_(U()))));
 
@@ -70,7 +76,10 @@ volScalarField dynamicSmagorinsky::cD(const volSymmTensorField& D) const
 }
 
 
-volScalarField dynamicSmagorinsky::cI(const volSymmTensorField& D) const
+volScalarField dynamicSmagorinsky::cI
+(
+    const volSymmTensorField& D
+) const
 {
     volScalarField KK = 0.5*(filter_(magSqr(U())) - magSqr(filter_(U())));
 
@@ -95,7 +104,9 @@ dynamicSmagorinsky::dynamicSmagorinsky
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport
+    transportModel& transport,
+    const word& turbulenceModelName,
+    const word& modelName
 )
 :
     LESModel(typeName, U, phi, transport),
@@ -125,7 +136,10 @@ dynamicSmagorinsky::dynamicSmagorinsky
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void dynamicSmagorinsky::correct(const tmp<volTensorField>& gradU)
+void dynamicSmagorinsky::correct
+(
+    const tmp<volTensorField>& gradU
+)
 {
     LESModel::correct(gradU);
 
