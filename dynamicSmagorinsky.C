@@ -59,20 +59,21 @@ volScalarField dynamicSmagorinsky::cD
     const volSymmTensorField& D
 ) const
 {
-    volSymmTensorField LL = dev(filter_(sqr(U())) - (sqr(filter_(U()))));
+    tmp<volSymmTensorField> LL = 
+	dev(filter_(sqr(U())) - (sqr(filter_(U()))));
 
-    volSymmTensorField MM =
-        sqr(delta())*(filter_(mag(D)*(D)) - 4*mag(filter_(D))*filter_(D));
+    const volSymmTensorField MM
+    (
+        sqr(delta())*(filter_(mag(D)*(D)) - 4*mag(filter_(D))*filter_(D))
+    );
 
     // Locally averaging MMMM on cell faces
     volScalarField MMMM = fvc::average(magSqr(MM));
-    
+
     MMMM.max(VSMALL);
-    
-    volScalarField LLMM = LL && MM;
-    
+
     // Performing local average on cell faces on return
-    return fvc::average(LLMM)/MMMM;
+    return 0.5*fvc::average(LL && MM)/MMMM;
 }
 
 
@@ -81,20 +82,21 @@ volScalarField dynamicSmagorinsky::cI
     const volSymmTensorField& D
 ) const
 {
-    volScalarField KK = 0.5*(filter_(magSqr(U())) - magSqr(filter_(U())));
+    tmp<volScalarField> KK = 
+	0.5*(filter_(magSqr(U())) - magSqr(filter_(U())));
 
-    volScalarField mm =
-        sqr(delta())*(4*sqr(mag(filter_(D))) - filter_(sqr(mag(D))));
+    const volScalarField mm
+    (
+        sqr(delta())*(4*sqr(mag(filter_(D))) - filter_(sqr(mag(D))))
+    );
 
     // Locally averaging mmmm on cell faces
     volScalarField mmmm = fvc::average(magSqr(mm));
-    
+
     mmmm.max(VSMALL);
-    
-    volScalarField KKmm = KK*mm;    
-    
+
     // Performing local average on cell faces on return
-    return fvc::average(KKmm)/mmmm;
+    return fvc::average(KK*mm)/mmmm;
 }
 
 
@@ -143,9 +145,10 @@ void dynamicSmagorinsky::correct
 {
     LESModel::correct(gradU);
 
-    volSymmTensorField D = dev(symm(gradU));
+    const volSymmTensorField D(dev(symm(gradU)));
 
     k_ = cI(D)*sqr(delta())*magSqr(D);
+    bound(k_,  kMin_);
 
     updateSubGridScaleFields(D);
 }
