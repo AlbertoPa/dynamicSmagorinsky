@@ -1,6 +1,6 @@
 dynamicSmagorinsky - Implementation of the dynamic Smagorinsky SGS model
 		     as proposed by Lilly (1992) for OpenFOAM.
-    
+
 Copyright Information
     Copyright (C) 1991-2009 OpenCFD Ltd.
     Copyright (C) 2010-2011 Alberto Passalacqua
@@ -21,15 +21,15 @@ License
 
 Description
     Implementation of the dynamic Smagorinsky model with coefficients cD and
-    cI computed as local average of their face values to avoid numerical 
-    instabilities. 
+    cI computed as local average of their face values to avoid numerical
+    instabilities.
     Negative values of the effective viscosity are removed by clipping it to
     zero (nuSgs is clipped to -nu)
 
 Target platform
-    The code is known to work with OpenFOAM 2.0.x.
+    The code is known to work with OpenFOAM 2.0.x. and 2.1.x.
 
-    This version of the code does not build against OpenFOAM 1.7.x. The 
+    This version of the code does not build against OpenFOAM 1.7.x. The
     latest version compatible with OpenFOAM 1.7.x corresponds to the git
     commit c5b8d5d8a274ba702c68f1be75f31e8f2def81d7.
 
@@ -70,14 +70,14 @@ Instructions
 
 Disclaimer
 ----------
-This offering is not approved or endorsed by OpenCFD Limited, the producer 
+This offering is not approved or endorsed by OpenCFD Limited, the producer
 of the OpenFOAM software and owner of the OPENFOAM®  and OpenCFD®  trade marks.
 
 Detailed information on the OpenFOAM trademark can be found at
 
  - http://www.openfoam.com/legal/trademark-policy.php
  - http://www.openfoam.com/legal/trademark-guidelines.php
- 
-For further information on OpenCFD and OpenFOAM, please refer to 
+
+For further information on OpenCFD and OpenFOAM, please refer to
 
  - http://www.openfoam.com

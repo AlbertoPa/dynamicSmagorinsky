@@ -75,7 +75,7 @@ Notes
     Negative values of the effective viscosity are removed by clipping it to
     zero (nuSgs is clipped to -nu)
 
-    The code is known to work with OpenFOAM 2.0.x.
+    The code is known to work with OpenFOAM 2.0.x and 2.1.x.
 
 \*---------------------------------------------------------------------------*/
 
