@@ -1,10 +1,10 @@
 /*---------------------------------------------------------------------------*\
 dynamicSmagorinsky - Implementation of the dynamic Smagorinsky SGS model
 		     as proposed by Lilly (1992) for OpenFOAM
-				 
+
 Copyright Information
     Copyright (C) 1991-2009 OpenCFD Ltd.
-    Copyright (C) 2010-2011 Alberto Passalacqua 
+    Copyright (C) 2010-2014 Alberto Passalacqua 
 
 License
     This program is free software: you can redistribute it and/or modify
@@ -61,7 +61,7 @@ SourceFiles
     dynamicSmagorinsky.C
     
 Authors
-    Alberto Passalacqua <albertop@iastate.edu; albert.passalacqua@gmail.com>
+    Alberto Passalacqua <apcfd@outlook.com>
 
 References
     -	Lilly, D. K., A proposed modificaiton of the Germano subgrid-scale 
@@ -75,7 +75,7 @@ Notes
     Negative values of the effective viscosity are removed by clipping it to
     zero (nuSgs is clipped to -nu)
 
-    The code is known to work with OpenFOAM 2.0.x and 2.1.x.
+    The code is known to work with OpenFOAM 2.0.x., 2.1.x, 2.2.x, 2.3.x.
 
 \*---------------------------------------------------------------------------*/
 

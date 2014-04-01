@@ -4,7 +4,7 @@ dynamicSmagorinsky - Implementation of the dynamic Smagorinsky
     
 Copyright Information
     Copyright (C) 1991-2009 OpenCFD Ltd.
-    Copyright (C) 2010-2011 Alberto Passalacqua 
+    Copyright (C) 2010-2014 Alberto Passalacqua 
     
 License
     This program is free software: you can redistribute it and/or modify
