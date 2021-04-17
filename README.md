@@ -71,7 +71,10 @@ Author
 
 # How to cite:
 
-Please, cite this library using the Zenodo DOI: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4697995.svg)](https://doi.org/10.5281/zenodo.4697995)
+Please, cite this library using the Zenodo DOI: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4697995.svg)](https://doi.org/10.5281/zenodo.4697995).
+
+For release-specific DOIs, click on the badge and find the DOI corresponding to
+the desired version in the version list.
 
 
 # Disclaimer
