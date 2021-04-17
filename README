@@ -56,7 +56,7 @@ Instructions
     LESModel        dynamicSmagorinsky;
     delta           cubeRootVol;
 
-   in LESModel.
+   in turbulentProperties.
 
 5. Add the subdictionary
 
@@ -66,7 +66,7 @@ Instructions
       ce        1.048;
     }
 
-   to LESModels.
+   to turbulentProperties.
 
 Disclaimer
 ----------

@@ -115,7 +115,6 @@ dynamicSmagorinsky<BasicTurbulenceModel>::dynamicSmagorinsky
         this->mesh_,
         dimensionedScalar("cI", dimless, 0.0)
     ),
-
     filterPtr_(LESfilter::New(U.mesh(), this->coeffDict())),
     filter_(filterPtr_())
 {
@@ -139,7 +138,8 @@ void dynamicSmagorinsky<BasicTurbulenceModel>::calcCD
 
     const volSymmTensorField MM
     (
-        sqr(this->delta())*(filter_(mag(S)*(S)) - 4.0*mag(filter_(S))*filter_(S))
+        sqr(this->delta())
+       *(filter_(mag(S)*(S)) - 4.0*mag(filter_(S))*filter_(S))
     );
 
     // Locally averaging MMMM on cell faces
