@@ -45,16 +45,19 @@ timePrecision   6;
 
 runTimeModifiable true;
 
-libs ( "libOpenFOAM.so" "libdynamicSmagorinskyModel.so" ) ;
+libs 
+( 
+    "libOpenFOAM.so"
+    "libdynamicSmagorinsky.so" 
+);
 
 functions
 {
-    fieldAverage1
+     fieldAverage1
     {
         type            fieldAverage;
-        functionObjectLibs ( "libfieldFunctionObjects.so" );
-        enabled         true;
-        outputControl   outputTime;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
 
         fields
         (

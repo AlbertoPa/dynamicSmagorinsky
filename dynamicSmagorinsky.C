@@ -1,10 +1,10 @@
 /*---------------------------------------------------------------------------*\
 dynamicSmagorinsky - Implementation of the dynamic Smagorinsky
-		     SGS model.
+                     SGS model.
     
 Copyright Information
     Copyright (C) 1991-2009 OpenCFD Ltd.
-    Copyright (C) 2010-2014 Alberto Passalacqua 
+    Copyright (C) 2010-2021 Alberto Passalacqua 
     
 License
     This program is free software: you can redistribute it and/or modify
@@ -16,55 +16,130 @@ License
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
+    
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 \*---------------------------------------------------------------------------*/
 
 #include "dynamicSmagorinsky.H"
-#include "addToRunTimeSelectionTable.H"
+#include "fvOptions.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace incompressible
-{
 namespace LESModels
 {
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-defineTypeNameAndDebug(dynamicSmagorinsky, 0);
-addToRunTimeSelectionTable(LESModel, dynamicSmagorinsky, dictionary);
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-void dynamicSmagorinsky::updateSubGridScaleFields
+template<class BasicTurbulenceModel>
+void dynamicSmagorinsky<BasicTurbulenceModel>::correctNut
 (
-    const volSymmTensorField& D
+    const tmp<volTensorField>& gradU
 )
 {
+    const volSymmTensorField S(dev(symm(gradU)));
+
     // The SGS viscosity is bounded so that nuEff cannot become negative.
     // Values are limited here, and not in nuEff, for consistency in stored
     // data and in submodels using nuSgs().
     // No warning message is printed when this limitation is applied.
-    nuSgs_ = max(cD(D)*sqr(delta())*sqrt(magSqr(D)), -nu());
-    nuSgs_.correctBoundaryConditions();
+    this->nut_ = max(cD_*sqr(this->delta())*sqrt(magSqr(S)), -this->nu());
+
+    this->nut_.correctBoundaryConditions();
+    fv::options::New(this->mesh_).correct(this->nut_);
+
+    BasicTurbulenceModel::correctNut();
 }
 
-volScalarField dynamicSmagorinsky::cD
-(
-    const volSymmTensorField& D
-) const
+
+template<class BasicTurbulenceModel>
+void dynamicSmagorinsky<BasicTurbulenceModel>::correctNut()
 {
-    tmp<volSymmTensorField> LL = 
-	dev(filter_(sqr(U())) - (sqr(filter_(U()))));
+    correctNut(fvc::grad(this->U_));
+}
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+template<class BasicTurbulenceModel>
+dynamicSmagorinsky<BasicTurbulenceModel>::dynamicSmagorinsky
+(
+    const alphaField& alpha,
+    const rhoField& rho,
+    const volVectorField& U,
+    const surfaceScalarField& alphaRhoPhi,
+    const surfaceScalarField& phi,
+    const transportModel& transport,
+    const word& propertiesName,
+    const word& type
+)
+:
+    LESeddyViscosity<BasicTurbulenceModel>
+    (
+        type,
+        alpha,
+        rho,
+        U,
+        alphaRhoPhi,
+        phi,
+        transport,
+        propertiesName
+    ),
+
+    cD_
+    (
+        IOobject
+        (
+            IOobject::groupName("cD_", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        this->mesh_,
+        dimensionedScalar("cD", dimless, 0.0)
+    ),
+
+    cI_
+    (
+        IOobject
+        (
+            IOobject::groupName("cI_", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        this->mesh_,
+        dimensionedScalar("cI", dimless, 0.0)
+    ),
+
+    filterPtr_(LESfilter::New(U.mesh(), this->coeffDict())),
+    filter_(filterPtr_())
+{
+    if (type == typeName)
+    {
+        this->printCoeffs(type);
+    }
+}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+template<class BasicTurbulenceModel>
+void dynamicSmagorinsky<BasicTurbulenceModel>::calcCD
+(
+    const volSymmTensorField& S
+)
+{
+    const volVectorField& U = this->U_;
+    tmp<volSymmTensorField> LL = dev(filter_(sqr(U)) - (sqr(filter_(U))));
 
     const volSymmTensorField MM
     (
-        sqr(delta())*(filter_(mag(D)*(D)) - 4*mag(filter_(D))*filter_(D))
+        sqr(this->delta())*(filter_(mag(S)*(S)) - 4.0*mag(filter_(S))*filter_(S))
     );
 
     // Locally averaging MMMM on cell faces
@@ -73,21 +148,28 @@ volScalarField dynamicSmagorinsky::cD
     MMMM.max(VSMALL);
 
     // Performing local average on cell faces on return
-    return 0.5*fvc::average(LL && MM)/MMMM;
+    cD_ = 0.5*fvc::average(LL && MM)/MMMM;
+
+    if (debug)
+    {
+        Info<< "min(cD) = " << min(cD_) 
+            << ", max(cD) = " << max(cD_)
+            << ", average(cD) = " << average(cD_) << endl;
+    }
 }
 
-
-volScalarField dynamicSmagorinsky::cI
+template<class BasicTurbulenceModel>
+void dynamicSmagorinsky<BasicTurbulenceModel>::calcCI
 (
-    const volSymmTensorField& D
-) const
+    const volSymmTensorField& S
+)
 {
-    tmp<volScalarField> KK = 
-	0.5*(filter_(magSqr(U())) - magSqr(filter_(U())));
+    const volVectorField& U = this->U_;
+    tmp<volScalarField> KK = 0.5*(filter_(magSqr(U)) - magSqr(filter_(U)));
 
     const volScalarField mm
     (
-        sqr(delta())*(4*sqr(mag(filter_(D))) - filter_(sqr(mag(D))))
+        sqr(this->delta())*(4*sqr(mag(filter_(S))) - filter_(sqr(mag(S))))
     );
 
     // Locally averaging mmmm on cell faces
@@ -96,82 +178,62 @@ volScalarField dynamicSmagorinsky::cI
     mmmm.max(VSMALL);
 
     // Performing local average on cell faces on return
-    return fvc::average(KK*mm)/mmmm;
-}
+    cI_ = fvc::average(KK*mm)/mmmm;
 
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-dynamicSmagorinsky::dynamicSmagorinsky
-(
-    const volVectorField& U,
-    const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName,
-    const word& modelName
-)
-:
-    LESModel(typeName, U, phi, transport),
-    GenEddyVisc(U, phi, transport),
-
-    k_
-    (
-        IOobject
-        (
-            "k",
-            runTime_.timeName(),
-            mesh_,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh_
-    ),
-
-    filterPtr_(LESfilter::New(U.mesh(), coeffDict())),
-    filter_(filterPtr_())
-{
-    updateSubGridScaleFields(dev(symm(fvc::grad(U))));
-
-    printCoeffs();
-}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void dynamicSmagorinsky::correct
-(
-    const tmp<volTensorField>& gradU
-)
-{
-    LESModel::correct(gradU);
-
-    const volSymmTensorField D(dev(symm(gradU)));
-
-    k_ = cI(D)*sqr(delta())*magSqr(D);
-    bound(k_,  kMin_);
-
-    updateSubGridScaleFields(D);
-}
-
-bool dynamicSmagorinsky::read()
-{
-    if (GenEddyVisc::read())
+    if (debug)
     {
-        filter_.read(coeffDict());
+        Info<< "min(cI) = " << min(cI_) 
+            << ", max(cI) = " << max(cI_)
+            << ", average(cI) = " << average(cI_) << endl;
+    }
+}
+
+
+template<class BasicTurbulenceModel>
+bool dynamicSmagorinsky<BasicTurbulenceModel>::read()
+{
+    if (LESeddyViscosity<BasicTurbulenceModel>::read())
+    {
+        filter_.read(this->coeffDict());
 
         return true;
     }
-    else
+
+    return false;
+}
+
+
+template<class BasicTurbulenceModel>
+void dynamicSmagorinsky<BasicTurbulenceModel>::correct()
+{
+    if (!this->turbulence_)
     {
-        return false;
+        return;
     }
+
+    // Local references
+    const alphaField& alpha = this->alpha_;
+    const rhoField& rho = this->rho_;
+    const surfaceScalarField& alphaRhoPhi = this->alphaRhoPhi_;
+    const volVectorField& U = this->U_;
+    fv::options& fvOptions(fv::options::New(this->mesh_));
+
+    LESeddyViscosity<BasicTurbulenceModel>::correct();
+
+    tmp<volTensorField> tgradU(fvc::grad(U));
+    const volTensorField& gradU = tgradU();
+
+    volSymmTensorField S(dev(symm(gradU)));
+
+    calcCD(S);
+    calcCI(S);
+    correctNut(gradU);
 }
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace LESModels
-} // End namespace incompressible
 } // End namespace Foam
 
 // ************************************************************************* //

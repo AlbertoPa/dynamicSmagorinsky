@@ -1,15 +1,16 @@
 EXE_INC = \
-    -I$(LIB_SRC)/turbulenceModels \
-    -I$(LIB_SRC)/turbulenceModels/LES/LESdeltas/lnInclude \
-    -I$(LIB_SRC)/turbulenceModels/LES/LESfilters/lnInclude \
-    -I$(LIB_SRC)/turbulenceModels/incompressible/LES/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/incompressible/lnInclude \
     -I$(LIB_SRC)/transportModels \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
-    -I$(LIB_SRC)/meshTools/lnInclude
+    -I$(LIB_SRC)/meshTools/lnInclude \
 
 LIB_LIBS = \
-    -lincompressibleTurbulenceModel \
-    -lLESdeltas \
-    -lLESfilters\
+    -lturbulenceModels \
+    -lincompressibleTurbulenceModels \
+    -lincompressibleTransportModels \
+    -lcompressibleTurbulenceModels \
+    -lcompressibleTransportModels \
     -lfiniteVolume \
-    -lmeshTools
+    -lmeshTools \
+    -lOpenFOAM

@@ -1,10 +1,10 @@
 /*---------------------------------------------------------------------------*\
-dynamicSmagorinsky - Implementation of the dynamic Smagorinsky SGS model
-		     as proposed by Lilly (1992) for OpenFOAM
+dynamicSmagorinsky - Implementation of the dynamic Smagorinsky SGS model 
+                     as proposed by Lilly (1992) for OpenFOAM
 
 Copyright Information
     Copyright (C) 1991-2009 OpenCFD Ltd.
-    Copyright (C) 2010-2014 Alberto Passalacqua 
+    Copyright (C) 2010-2021 Alberto Passalacqua 
 
 License
     This program is free software: you can redistribute it and/or modify
@@ -16,12 +16,15 @@ License
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
+    
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::incompressible::LESModels::dynamicSmagorinsky
+    Foam::LESModels::dynamicSmagorinsky
+
+Group
+    grpLESTurbulence
 
 Description
     The isochoric dynamic Smagorinsky model for incompressible flows.
@@ -29,6 +32,7 @@ Description
     Algebraic eddy viscosity SGS model founded on the assumption that
     local equilibrium prevails.
     Thus,
+
     @verbatim
         B = 2/3*k*I - 2*nuSgs*dev(D)
         Beff = 2/3*k*I - 2*nuEff*dev(D)
@@ -64,7 +68,7 @@ Authors
     Alberto Passalacqua <apcfd@outlook.com>
 
 References
-    -	Lilly, D. K., A proposed modificaiton of the Germano subgrid-scale 
+    Lilly, D. K., A proposed modificaiton of the Germano subgrid-scale 
 	closure method, Physics of Fluid A, 4 (3), 1992.
 
 Notes
@@ -74,98 +78,124 @@ Notes
 
     Negative values of the effective viscosity are removed by clipping it to
     zero (nuSgs is clipped to -nu)
-
-    The code is known to work with OpenFOAM 2.0.x., 2.1.x, 2.2.x, 2.3.x.
-
+    
+    The code is known to work with OpenFOAM v2012.
 \*---------------------------------------------------------------------------*/
 
 #ifndef dynamicSmagorinsky_H
 #define dynamicSmagorinsky_H
 
-#include "Smagorinsky.H"
+#include "LESModel.H"
 #include "LESfilter.H"
+#include "LESeddyViscosity.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
-{
-namespace incompressible
 {
 namespace LESModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class dynamicSmagorinsky Declaration
+                    Class dynamicSmagorinsky Declaration
 \*---------------------------------------------------------------------------*/
 
-class dynamicSmagorinsky
-:
-    public GenEddyVisc
+template<class BasicTurbulenceModel>
+class dynamicSmagorinsky : public LESeddyViscosity<BasicTurbulenceModel>
 {
-    // Private data
+    // Private Member Functions
 
-        volScalarField k_;
+        void calcCD(const volSymmTensorField& S);
+
+        void calcCI(const volSymmTensorField& S);
+
+        //- No copy construct
+        dynamicSmagorinsky(const dynamicSmagorinsky&) = delete;
+
+        //- No copy assignment
+        void operator=(const dynamicSmagorinsky&) = delete;
+
+
+protected:
+
+    // Protected data
+
+        volScalarField cD_;
+        volScalarField cI_;
 
         autoPtr<LESfilter> filterPtr_;
         LESfilter& filter_;
 
+    // Protected Member Functions
 
-    // Private Member Functions
+        //- Update sub-grid eddy-viscosity
+        void correctNut(const tmp<volTensorField>& gradU);
 
-        //- Update sub-grid scale fields
-        void updateSubGridScaleFields(const volSymmTensorField& D);
-	
-        //- Calculate coefficients cD, cI from filtering velocity field
-        volScalarField cD(const volSymmTensorField& D) const;
-        volScalarField cI(const volSymmTensorField& D) const;
-
-        // Disallow default bitwise copy construct and assignment
-        dynamicSmagorinsky(const dynamicSmagorinsky&);
-        dynamicSmagorinsky& operator=(const dynamicSmagorinsky&);
+        virtual void correctNut();
 
 
 public:
 
+    typedef typename BasicTurbulenceModel::alphaField alphaField;
+    typedef typename BasicTurbulenceModel::rhoField rhoField;
+    typedef typename BasicTurbulenceModel::transportModel transportModel;
+
     //- Runtime type information
     TypeName("dynamicSmagorinsky");
+
 
     // Constructors
 
         //- Construct from components
         dynamicSmagorinsky
         (
+            const alphaField& alpha,
+            const rhoField& rho,
             const volVectorField& U,
+            const surfaceScalarField& alphaRhoPhi,
             const surfaceScalarField& phi,
-            transportModel& transport,
-	    const word& turbulenceModelName = turbulenceModel::typeName,
-            const word& modelName = typeName
+            const transportModel& transport,
+            const word& propertiesName = turbulenceModel::propertiesName,
+            const word& type = typeName
         );
 
+
     //- Destructor
-    virtual ~dynamicSmagorinsky()
-    {}
+    virtual ~dynamicSmagorinsky() = default;
 
 
     // Member Functions
 
+        //- Read model coefficients if they have changed
+        virtual bool read();
+
         //- Return SGS kinetic energy
-        tmp<volScalarField> k() const
+        tmp<volScalarField> k(const tmp<volTensorField>& gradU) const
         {
-            return k_;
+            return cI_*sqr(this->delta())*magSqr(dev(symm(gradU)));
+        }
+
+        //- Return SGS kinetic energy
+        virtual tmp<volScalarField> k() const
+        {
+            return k(fvc::grad(this->U_));
         }
 
         //- Correct Eddy-Viscosity and related properties
-        virtual void correct(const tmp<volTensorField>& gradU);
-
-        //- Read LESProperties dictionary
-        virtual bool read();
+        virtual void correct();
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace LESModels
-} // End namespace incompressible
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "dynamicSmagorinsky.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
