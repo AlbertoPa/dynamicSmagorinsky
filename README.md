@@ -1,3 +1,4 @@
+```
 dynamicSmagorinsky - Implementation of the dynamic Smagorinsky SGS model
                      as proposed by Lilly (1992) for OpenFOAM.
 
@@ -37,8 +38,10 @@ Author
     Alberto Passalacqua <apcfd@outlook.com>
     Website: http://www.albertopassalacqua.com
 
-Instructions
-------------
+```
+
+# Instructions
+
 
 1. Download the source code using git:
 
@@ -68,8 +71,8 @@ Instructions
 
    to turbulentProperties.
 
-Disclaimer
-----------
+# Disclaimer
+
 This offering is not approved or endorsed by OpenCFD Limited, the producer
 of the OpenFOAM software and owner of the OPENFOAM®  and OpenCFD®  trade marks.
 
