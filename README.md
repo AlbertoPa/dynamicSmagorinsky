@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4697995.svg)](https://doi.org/10.5281/zenodo.4697995)
+
 ```
 dynamicSmagorinsky - Implementation of the dynamic Smagorinsky SGS model
                      as proposed by Lilly (1992) for OpenFOAM.
