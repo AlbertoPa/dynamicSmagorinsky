@@ -28,11 +28,7 @@ Description
     zero (nuSgs is clipped to -nu)
 
 Target platform
-    The code is known to work with OpenFOAM 2.0.x., 2.1.x, 2.2.x, 2.3.x.
-
-    This version of the code does not build against OpenFOAM 1.7.x. The
-    latest version compatible with OpenFOAM 1.7.x corresponds to the git
-    commit c5b8d5d8a274ba702c68f1be75f31e8f2def81d7.
+    The code is known to work with OpenFOAM v2012.
 
 Author
     Alberto Passalacqua <apcfd@outlook.com>
