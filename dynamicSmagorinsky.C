@@ -139,7 +139,7 @@ void dynamicSmagorinsky<BasicMomentumTransportModel>::calcCD
     );
 
     // Locally averaging MMMM on cell faces
-    volScalarField MMMM = fvc::average(magSqr(MM));
+    volScalarField MMMM(fvc::average(magSqr(MM)));
 
     MMMM.max(VSMALL);
 
@@ -169,7 +169,7 @@ void dynamicSmagorinsky<BasicMomentumTransportModel>::calcCI
     );
 
     // Locally averaging mmmm on cell faces
-    volScalarField mmmm = fvc::average(magSqr(mm));
+    volScalarField mmmm(fvc::average(magSqr(mm)));
 
     mmmm.max(VSMALL);
 
