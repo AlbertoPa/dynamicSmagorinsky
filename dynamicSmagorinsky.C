@@ -143,7 +143,7 @@ void dynamicSmagorinsky<BasicTurbulenceModel>::calcCD
     );
 
     // Locally averaging MMMM on cell faces
-    volScalarField MMMM = fvc::average(magSqr(MM));
+    volScalarField MMMM(fvc::average(magSqr(MM)));
 
     MMMM.max(VSMALL);
 
@@ -173,7 +173,7 @@ void dynamicSmagorinsky<BasicTurbulenceModel>::calcCI
     );
 
     // Locally averaging mmmm on cell faces
-    volScalarField mmmm = fvc::average(magSqr(mm));
+    volScalarField mmmm(fvc::average(magSqr(mm)));
 
     mmmm.max(VSMALL);
 
@@ -212,11 +212,7 @@ void dynamicSmagorinsky<BasicTurbulenceModel>::correct()
     }
 
     // Local references
-    const alphaField& alpha = this->alpha_;
-    const rhoField& rho = this->rho_;
-    const surfaceScalarField& alphaRhoPhi = this->alphaRhoPhi_;
     const volVectorField& U = this->U_;
-    fv::options& fvOptions(fv::options::New(this->mesh_));
 
     LESeddyViscosity<BasicTurbulenceModel>::correct();
 
