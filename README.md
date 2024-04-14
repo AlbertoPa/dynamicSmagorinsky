@@ -30,7 +30,7 @@ Description
     zero (nuSgs is clipped to -nu)
 
 Target platform
-    The code is known to work with OpenFOAM v2012.
+    The code is known to work with OpenFOAM v2312.
 
 Author
     Alberto Passalacqua <apcfd@outlook.com>
