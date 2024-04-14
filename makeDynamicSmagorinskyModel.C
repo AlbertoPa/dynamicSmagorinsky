@@ -26,10 +26,9 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "IncompressibleTurbulenceModel.H"
-#include "incompressible/transportModel/transportModel.H"
+#include "incompressibleMomentumTransportModel.H"
 #include "addToRunTimeSelectionTable.H"
-#include "makeTurbulenceModel.H"
+#include "makeMomentumTransportModel.H"
 
 #include "laminarModel.H"
 #include "RASModel.H"
@@ -37,26 +36,36 @@ License
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-makeTurbulenceModelTypes
+makeMomentumTransportModelTypes
 (
     geometricOneField,
     geometricOneField,
-    incompressibleTurbulenceModel,
-    IncompressibleTurbulenceModel,
-    transportModel
+    incompressibleMomentumTransportModel
 );
 
 #define makeLaminarModel(Type)                                                 \
-    makeTemplatedTurbulenceModel                                               \
-    (transportModelIncompressibleTurbulenceModel, laminar, Type)
+    makeTemplatedMomentumTransportModel                                        \
+    (                                                                          \
+        incompressibleMomentumTransportModel,                                  \
+        laminar,                                                               \
+        Type                                                                   \
+    )
 
 #define makeRASModel(Type)                                                     \
-    makeTemplatedTurbulenceModel                                               \
-    (transportModelIncompressibleTurbulenceModel, RAS, Type)
+    makeTemplatedMomentumTransportModel                                        \
+    (                                                                          \
+        incompressibleMomentumTransportModel,                                  \
+        RAS,                                                                   \
+        Type                                                                   \
+    )
 
 #define makeLESModel(Type)                                                     \
-    makeTemplatedTurbulenceModel                                               \
-    (transportModelIncompressibleTurbulenceModel, LES, Type)
+    makeTemplatedMomentumTransportModel                                        \
+    (                                                                          \
+        incompressibleMomentumTransportModel,                                  \
+        LES,                                                                   \
+        Type                                                                   \
+    )
 
 #include "dynamicSmagorinsky.H"
 makeLESModel(dynamicSmagorinsky);

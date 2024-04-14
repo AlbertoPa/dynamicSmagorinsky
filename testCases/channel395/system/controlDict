@@ -15,7 +15,9 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     pimpleFoam;
+application     foamRun;
+
+solver          incompressibleFluid;
 
 startFrom       startTime;
 
@@ -51,31 +53,6 @@ libs
     "libdynamicSmagorinsky.so" 
 );
 
-functions
-{
-     fieldAverage1
-    {
-        type            fieldAverage;
-        libs            (fieldFunctionObjects);
-        writeControl    writeTime;
-
-        fields
-        (
-            U
-            {
-                mean        on;
-                prime2Mean  on;
-                base        time;
-            }
-
-            p
-            {
-                mean        on;
-                prime2Mean  on;
-                base        time;
-            }
-        );
-    }
-}
+#includeFunc fieldAverage(U, p, prime2Mean = yes)
 
 // ************************************************************************* //

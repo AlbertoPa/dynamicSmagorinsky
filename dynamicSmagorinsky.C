@@ -4,7 +4,7 @@ dynamicSmagorinsky - Implementation of the dynamic Smagorinsky
 
 Copyright Information
     Copyright (C) 1991-2009 OpenCFD Ltd.
-    Copyright (C) 2010-2021 Alberto Passalacqua 
+    Copyright (C) 2010-2024 Alberto Passalacqua 
 
 License
     This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,8 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "dynamicSmagorinsky.H"
-#include "fvOptions.H"
+#include "fvcAverage.H"
+#include "fvConstraints.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -33,8 +34,8 @@ namespace LESModels
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-template<class BasicTurbulenceModel>
-void dynamicSmagorinsky<BasicTurbulenceModel>::correctNut
+template<class BasicMomentumTransportModel>
+void dynamicSmagorinsky<BasicMomentumTransportModel>::correctNut
 (
     const tmp<volTensorField>& gradU
 )
@@ -46,16 +47,13 @@ void dynamicSmagorinsky<BasicTurbulenceModel>::correctNut
     // data and in submodels using nuSgs().
     // No warning message is printed when this limitation is applied.
     this->nut_ = max(cD_*sqr(this->delta())*sqrt(magSqr(S)), -this->nu());
-
     this->nut_.correctBoundaryConditions();
-    fv::options::New(this->mesh_).correct(this->nut_);
-
-    BasicTurbulenceModel::correctNut();
+    fvConstraints::New(this->mesh_).constrain(this->nut_);
 }
 
 
-template<class BasicTurbulenceModel>
-void dynamicSmagorinsky<BasicTurbulenceModel>::correctNut()
+template<class BasicMomentumTransportModel>
+void dynamicSmagorinsky<BasicMomentumTransportModel>::correctNut()
 {
     correctNut(fvc::grad(this->U_));
 }
@@ -63,20 +61,19 @@ void dynamicSmagorinsky<BasicTurbulenceModel>::correctNut()
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class BasicTurbulenceModel>
-dynamicSmagorinsky<BasicTurbulenceModel>::dynamicSmagorinsky
+template<class BasicMomentumTransportModel>
+dynamicSmagorinsky<BasicMomentumTransportModel>::dynamicSmagorinsky
 (
     const alphaField& alpha,
     const rhoField& rho,
     const volVectorField& U,
     const surfaceScalarField& alphaRhoPhi,
     const surfaceScalarField& phi,
-    const transportModel& transport,
-    const word& propertiesName,
+    const viscosity& viscosity,
     const word& type
 )
 :
-    LESeddyViscosity<BasicTurbulenceModel>
+    LESeddyViscosity<BasicMomentumTransportModel>
     (
         type,
         alpha,
@@ -84,8 +81,7 @@ dynamicSmagorinsky<BasicTurbulenceModel>::dynamicSmagorinsky
         U,
         alphaRhoPhi,
         phi,
-        transport,
-        propertiesName
+        viscosity
     ),
 
     cD_
@@ -127,8 +123,8 @@ dynamicSmagorinsky<BasicTurbulenceModel>::dynamicSmagorinsky
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-template<class BasicTurbulenceModel>
-void dynamicSmagorinsky<BasicTurbulenceModel>::calcCD
+template<class BasicMomentumTransportModel>
+void dynamicSmagorinsky<BasicMomentumTransportModel>::calcCD
 (
     const volSymmTensorField& S
 )
@@ -158,8 +154,8 @@ void dynamicSmagorinsky<BasicTurbulenceModel>::calcCD
     }
 }
 
-template<class BasicTurbulenceModel>
-void dynamicSmagorinsky<BasicTurbulenceModel>::calcCI
+template<class BasicMomentumTransportModel>
+void dynamicSmagorinsky<BasicMomentumTransportModel>::calcCI
 (
     const volSymmTensorField& S
 )
@@ -189,10 +185,10 @@ void dynamicSmagorinsky<BasicTurbulenceModel>::calcCI
 }
 
 
-template<class BasicTurbulenceModel>
-bool dynamicSmagorinsky<BasicTurbulenceModel>::read()
+template<class BasicMomentumTransportModel>
+bool dynamicSmagorinsky<BasicMomentumTransportModel>::read()
 {
-    if (LESeddyViscosity<BasicTurbulenceModel>::read())
+    if (LESeddyViscosity<BasicMomentumTransportModel>::read())
     {
         filter_.read(this->coeffDict());
 
@@ -203,8 +199,8 @@ bool dynamicSmagorinsky<BasicTurbulenceModel>::read()
 }
 
 
-template<class BasicTurbulenceModel>
-void dynamicSmagorinsky<BasicTurbulenceModel>::correct()
+template<class BasicMomentumTransportModel>
+void dynamicSmagorinsky<BasicMomentumTransportModel>::correct()
 {
     if (!this->turbulence_)
     {
@@ -212,17 +208,12 @@ void dynamicSmagorinsky<BasicTurbulenceModel>::correct()
     }
 
     // Local references
-    const alphaField& alpha = this->alpha_;
-    const rhoField& rho = this->rho_;
-    const surfaceScalarField& alphaRhoPhi = this->alphaRhoPhi_;
     const volVectorField& U = this->U_;
-    fv::options& fvOptions(fv::options::New(this->mesh_));
-
-    LESeddyViscosity<BasicTurbulenceModel>::correct();
+    
+    LESeddyViscosity<BasicMomentumTransportModel>::correct();
 
     tmp<volTensorField> tgradU(fvc::grad(U));
     const volTensorField& gradU = tgradU();
-
     volSymmTensorField S(dev(symm(gradU)));
 
     calcCD(S);

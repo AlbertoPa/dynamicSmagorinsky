@@ -4,7 +4,7 @@ dynamicSmagorinsky - Implementation of the dynamic Smagorinsky SGS model
 
 Copyright Information
     Copyright (C) 1991-2009 OpenCFD Ltd.
-    Copyright (C) 2010-2021 Alberto Passalacqua 
+    Copyright (C) 2010-2024 Alberto Passalacqua 
 
 License
     This program is free software: you can redistribute it and/or modify
@@ -85,7 +85,6 @@ Notes
 #ifndef dynamicSmagorinsky_H
 #define dynamicSmagorinsky_H
 
-#include "LESModel.H"
 #include "LESfilter.H"
 #include "LESeddyViscosity.H"
 
@@ -100,20 +99,14 @@ namespace LESModels
                     Class dynamicSmagorinsky Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class BasicTurbulenceModel>
-class dynamicSmagorinsky : public LESeddyViscosity<BasicTurbulenceModel>
+template<class BasicMomentumTransportModel>
+class dynamicSmagorinsky : public LESeddyViscosity<BasicMomentumTransportModel>
 {
     // Private Member Functions
 
         void calcCD(const volSymmTensorField& S);
 
         void calcCI(const volSymmTensorField& S);
-
-        //- No copy construct
-        dynamicSmagorinsky(const dynamicSmagorinsky&) = delete;
-
-        //- No copy assignment
-        void operator=(const dynamicSmagorinsky&) = delete;
 
 
 protected:
@@ -136,9 +129,9 @@ protected:
 
 public:
 
-    typedef typename BasicTurbulenceModel::alphaField alphaField;
-    typedef typename BasicTurbulenceModel::rhoField rhoField;
-    typedef typename BasicTurbulenceModel::transportModel transportModel;
+    typedef typename BasicMomentumTransportModel::alphaField alphaField;
+    typedef typename BasicMomentumTransportModel::rhoField rhoField;
+
 
     //- Runtime type information
     TypeName("dynamicSmagorinsky");
@@ -154,10 +147,12 @@ public:
             const volVectorField& U,
             const surfaceScalarField& alphaRhoPhi,
             const surfaceScalarField& phi,
-            const transportModel& transport,
-            const word& propertiesName = turbulenceModel::propertiesName,
+            const viscosity& viscosity,
             const word& type = typeName
         );
+        
+        //- Disallow default bitwise copy construction
+        dynamicSmagorinsky(const dynamicSmagorinsky&) = delete;
 
 
     //- Destructor
