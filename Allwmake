@@ -1,0 +1,49 @@
+#!/bin/bash
+cd "${0%/*}" || exit   # Run from this directory
+. "${WM_PROJECT_DIR:?}"/wmake/scripts/AllwmakeParseArguments
+#------------------------------------------------------------------------------
+
+moduleName="dynamicSmagorinsky"
+
+if [ "$FOAM_MODULE_PREFIX" = false ]
+then
+    echo "Compilation of $moduleName is disabled (prefix=false)"
+    exit 0
+fi
+
+date "+%Y-%m-%d %H:%M:%S %z" 2>/dev/null || echo "date is unknown"
+echo "Starting compile of $moduleName"
+echo "  $WM_COMPILER $WM_COMPILER_TYPE compiler"
+echo "  ${WM_OPTIONS}, with ${WM_MPLIB} ${FOAM_MPI}"
+echo "  prefix = ${FOAM_MODULE_PREFIX:-default (user)}"
+echo
+
+
+unset prevVersion
+if [ -e foamVersionThisIsCompiledFor ]
+then
+    prevVersion=$(<foamVersionThisIsCompiledFor)
+fi
+
+if [ -n "$prevVersion" ]
+then
+    if [ "$prevVersion" = "$WM_PROJECT_VERSION" ]
+    then
+        echo "  Rebuilding for OpenFOAM = $WM_PROJECT_VERSION ($FOAM_API)."
+        echo
+    else
+        echo "  Previously compiled for OpenFOAM = $prevVersion"
+        echo "  but now using OpenFOAM = $WM_PROJECT_VERSION ($FOAM_API)."
+        echo "     Use ./Allwclean before compiling"
+        echo
+        exit 42
+    fi
+else
+    echo "  Building for OpenFOAM = $WM_PROJECT_VERSION ($FOAM_API)."
+    echo
+    echo "${WM_PROJECT_VERSION:-unknown}" >| foamVersionThisIsCompiledFor
+fi
+
+wmake dynamicSmagorinsky
+
+#------------------------------------------------------------------------------
